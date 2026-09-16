@@ -1,0 +1,50 @@
+# ---- builder: install deps and build the Next.js app ----
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+# NEXT_PUBLIC_* vars are inlined into the client bundle at build time, not
+# read at runtime — must be a build ARG (passed via docker-compose.yml's
+# build.args), not just a runtime `environment:` entry, or the bundle would
+# bake in whatever value (or none) was present when this image was built.
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+RUN npm run build
+
+# ---- runner: production runtime, no dev dependencies, non-root user ----
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+RUN apk add --no-cache curl
+
+ENV NODE_ENV=production
+
+RUN addgroup --system --gid 1001 nodejs \
+    && adduser --system --uid 1001 nextjs
+
+COPY package*.json ./
+
+RUN npm install --omit=dev
+
+COPY --chown=nextjs:nodejs --from=builder /app/public ./public
+COPY --chown=nextjs:nodejs --from=builder /app/.next ./.next
+COPY --chown=nextjs:nodejs --from=builder /app/next.config.js ./next.config.js
+
+RUN chown -R nextjs:nodejs /app
+
+USER nextjs
+
+EXPOSE 5173
+
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD curl -f http://127.0.0.1:5173/ || exit 1
+
+CMD ["npm", "run", "start"]

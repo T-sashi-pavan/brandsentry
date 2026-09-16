@@ -1,0 +1,90 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+venv/
+.venv/
+env/
+ENV/
+
+# Build and distribution outputs
+dist/
+dist-ssr/
+build/
+.output/
+.vite/
+
+info/
+# Database and data storage
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+pharma_brand.db
+backend/.cache/
+
+# Environment variables & secrets
+.env
+.env.local
+.env.*.local
+.env.example
+!.env.example
+!.env.*.example
+secrets/
+**/secrets/
+*.key
+*.pem
+
+# Logs and debug files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python cache & temporary files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Reference-only files (sample uploads, reference implementation, skill docs)
+INN.pdf
+OVERSEAS BRAND-NAMES_SEARCHED 1.xlsx
+Un-used TradeMarks List 2026 1.xlsx
+sun_pharma/
+.claude/
+
+# Trimmed frontend export (AI Generator + Brand Analysis modules only) —
+# lives one level above this repo today, listed here in case it's ever
+# copied/nested inside it.
+frontend-push/
+frontend-push.zip
+
+# Editor & OS metadata
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# Local-only documentation (architecture notes, perf analysis)
+docs/
+
+# Test suites, benchmarks and run artifacts (local only)
+backend/test_*.py
+backend/bench_*.py
+backend/TEST_REPORT.md
+backend/analyze_run_log.py
+backend/*.log
+backend/_t.db
+backend/_test_*.db

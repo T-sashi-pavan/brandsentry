@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Base */
+    --background: 33 60% 99%;
+    --foreground: 222 47% 11%;
+
+    /* Card / Popover */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Brand primary — #f7941e */
+    --primary: 33 93% 54%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Warm cream secondary — derived from logo light tone */
+    --secondary: 33 70% 94%;
+    --secondary-foreground: 33 30% 25%;
+
+    /* Muted — warm off-white */
+    --muted: 33 50% 95%;
+    --muted-foreground: 215 16% 47%;
+
+    /* Accent — light peach */
+    --accent: 33 70% 94%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 33 25% 88%;
+    --input: 33 25% 88%;
+    --ring: 33 93% 54%;
+    --radius: 0.5rem;
+
+    --warning: 25 95% 53%;
+    --success: 142 71% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { @apply bg-transparent; }
+::-webkit-scrollbar-thumb { background: #f5c49a; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #f7941e; }
+
+/* Suppress native Edge/IE/Chromium password reveal & clear buttons to avoid duplicate eye icons */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Radix's <Select.Viewport> (every "Link a Case" dropdown, and any other
+   dropdown built on components/ui/select.tsx) injects its own <style> tag
+   that hides the native scrollbar (scrollbar-width: none, -webkit-scrollbar
+   display: none) since it ships its own up/down chevron buttons as the only
+   scroll affordance — that rule is more specific than the plain
+   ::-webkit-scrollbar one above, so it always won. Overriding it back on so
+   these lists get the same visible thumb as every other scrollable panel. */
+[data-radix-select-viewport] {
+  scrollbar-width: thin !important;
+  -ms-overflow-style: auto !important;
+}
+[data-radix-select-viewport]::-webkit-scrollbar {
+  display: block !important;
+  width: 6px !important;
+}
+
+/* Risk gauge animation */
+@keyframes gauge-fill { from { stroke-dashoffset: 251.2; } }
+
+/* Loading shimmer */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #fde8cc 25%, #fbd4a8 50%, #fde8cc 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Hero gradient — cream-to-peach with orange accent border */
+.hero-gradient {
+  background: linear-gradient(160deg, #fffaf5 0%, #fef0de 55%, #fad4a0 100%);
+  border-bottom: 3px solid #f7941e;
+}
+
+/* Card hover */
+.card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(247,148,30,.15); }
+
+/* Risk colours */
+.risk-low    { color: #22c55e; }
+.risk-medium { color: #f97316; }
+.risk-high   { color: #ef4444; }
+
+.risk-bg-low    { background-color: #f0fdf4; border-color: #86efac; }
+.risk-bg-medium { background-color: #fff7ed; border-color: #fdba74; }
+
+/* Sonner toasts: the library's LTR default sticks the close button out of
+   the toast's top-LEFT corner (translate(-35%,-35%) off `left:0`). Any wide
+   Dialog (e.g. AI Generator's "Detailed Analysis" modal) also has its own
+   close button in that same screen region, so the two visually collide and
+   clicks land on whichever one the DOM/paint order favors — not reliably
+   the toast's. Re-pointing these three custom properties (the exact values
+   sonner itself uses for its RTL layout) moves just the close button to the
+   toast's own top-right corner, clear of any dialog chrome, without
+   flipping icon/button margins the way setting `dir="rtl"` would. */
+[data-sonner-toaster] {
+  --toast-close-button-start: unset !important;
+  --toast-close-button-end: 0 !important;
+  --toast-close-button-transform: translate(35%, -35%) !important;
+}
+
+/* The actual reason the close button didn't respond while any Dialog (e.g.
+   "Add to Review Batch" fired from inside the Detailed Analysis modal) was
+   open: Radix sets `pointer-events: none` on <body> for the duration of an
+   open modal, to stop clicks reaching anything outside it — its own overlay
+   re-enables `auto` just for itself so outside-clicks can still close it.
+   `pointer-events` inherits, and sonner's toast never re-asserts its own
+   value, so the toast silently inherited `none` too: it was fully painted
+   and its z-index (999999999) put it visually above the overlay, but every
+   click landed on the overlay underneath instead, no matter where it was
+   positioned. This re-declares `auto` directly on the toast, which beats an
+   inherited value regardless of the dialog's z-index or DOM order. */
+[data-sonner-toast] {
+  pointer-events: auto;
+}
+
+.risk-bg-high   { background-color: #fef2f2; border-color: #fca5a5; }
+
+/* Recharts click / focus box outline suppression */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-pie,
+.recharts-pie-sector,
+.recharts-sector,
+.recharts-layer,
+.recharts-wrapper *:focus,
+svg:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}

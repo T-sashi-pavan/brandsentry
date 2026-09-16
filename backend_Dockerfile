@@ -1,0 +1,49 @@
+# Pinned to the Debian codename (bookworm), not the floating `python:3.11-slim`
+# tag: that tag recently started tracking Debian 13 "trixie", which Playwright
+# has no official apt dependency list for yet, so `playwright install
+# --with-deps` falls back to a stale Ubuntu 20.04 package list containing
+# names (ttf-unifont, ttf-ubuntu-font-family) that don't exist in trixie's
+# repos and the build fails. bookworm (Debian 12) is a release Playwright
+# does support.
+FROM python:3.11-slim-bookworm
+
+WORKDIR /app
+
+# Install system dependencies needed for compiling extensions, the
+# PostgreSQL driver, and xmlsec1 (native dependency of python3-saml/SSO)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    curl \
+    pkg-config \
+    libxml2-dev \
+    libxmlsec1-dev \
+    libxmlsec1-openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install Playwright Chromium browser and all required Linux dependencies.
+# Browsers are installed to a fixed, known path (outside /app) so that path
+# can be explicitly chowned to the non-root runtime user below.
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN playwright install --with-deps chromium
+
+COPY . .
+
+# Run as a non-root user. This must happen AFTER `playwright install` (above)
+# and the app code COPY, and the chown must cover both /app and the
+# Playwright browsers path, so the app user can actually read+execute the
+# browser binaries at runtime (needed for e-pharmacy scraping).
+RUN addgroup --system app && adduser --system --ingroup app app \
+    && chown -R app:app /app /ms-playwright
+USER app
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD curl -f http://127.0.0.1:8000/health || exit 1
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
